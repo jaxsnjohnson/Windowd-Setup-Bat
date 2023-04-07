@@ -116,52 +116,53 @@ echo Collecting system information...
 
 set outputfile=%USERPROFILE%\Desktop\systeminfo.txt
 
+echo Computer Name: %computername%
 echo Computer Name: %computername% > %outputfile%
 
 for /f "tokens=2 delims==" %%i in ('wmic computersystem get manufacturer /value') do set manufacturer=%%i
+echo Manufacturer: %manufacturer%
 echo Manufacturer: %manufacturer% >> %outputfile%
 
 for /f "tokens=2 delims==" %%i in ('wmic computersystem get model /value') do set model=%%i
+echo Model: %model%
 echo Model: %model% >> %outputfile%
 
 for /f "tokens=2 delims==" %%i in ('wmic cpu get Name /value') do set cpu=%%i
+echo CPU: %cpu%
 echo CPU: %cpu% >> %outputfile%
 
 for /f "tokens=2 delims==" %%i in ('wmic os get Caption /value') do set os=%%i
+echo OS: %os%
 echo OS: %os% >> %outputfile%
 
 for /f "tokens=2 delims==" %%i in ('wmic logicaldisk where "drivetype=3" get size /value') do set disksize=%%i
+echo Disk Size: %disksize%
 echo Disk Size: %disksize% >> %outputfile%
 
 for /f "tokens=2 delims==" %%i in ('wmic logicaldisk where "drivetype=3" get freespace /value') do set freediskspace=%%i
+echo Free Disk Space: %freediskspace%
 echo Free Disk Space: %freediskspace% >> %outputfile%
 
 for /f "tokens=2 delims==" %%i in ('wmic computersystem get TotalPhysicalMemory /value') do set memory=%%i
 set /a memoryMB=%memory% / 1048576
+echo Memory: %memoryMB% MB
 echo Memory: %memoryMB% MB >> %outputfile%
-
-echo System information collected and saved to %outputfile%.
-
-echo Creating custom power plan based on Balanced power plan...
-for /f "tokens=4" %%i in ('powercfg -duplicatescheme e73a048d-bf27-4f12-9731-8b2076e8891f') do set "GUID=%%i"
 
 echo Custom power plan created with GUID: %GUID%
 
 echo Setting screen saver timeout to 15 minutes (900 seconds)...
-powercfg -setacvalueindex "%GUID%" "7516b95f-f776-4464-8c53-06167f40cc99" "17aaa29b-8b43-4b94-aafe-35f64daaf1ee" 900
+powercfg -setacvalueindex e73a048d-bf27-4f12-9731-8b2076e8891f 7516b95f-f776-4464-8c53-06167f40cc99 17aaa29b-8b43-4b94-aafe-35f64daaf1ee 900
 
 echo Setting sleep timeout to 5 hours (18000 seconds)...
-powercfg -setacvalueindex "%GUID%" "238c9fa8-0aad-41ed-83f4-97be242c8f20" "29f6c1db-86da-48c5-9fdb-f2b67b1f44da" 18000
+powercfg -setacvalueindex e73a048d-bf27-4f12-9731-8b2076e8891f 238c9fa8-0aad-41ed-83f4-97be242c8f20 29f6c1db-86da-48c5-9fdb-f2b67b1f44da 18000
 
 echo Setting system to never sleep when plugged into power...
-powercfg -setacvalueindex "%GUID%" "238c9fa8-0aad-41ed-83f4-97be242c8f20" "94ac6d29-73ce-41a6-809f-6363ba21b47e" 0
+powercfg -setacvalueindex e73a048d-bf27-4f12-9731-8b2076e8891f 238c9fa8-0aad-41ed-83f4-97be242c8f20 94ac6d29-73ce-41a6-809f-6363ba21b47e 0
 
 echo Activating custom power plan...
-powercfg -setactive %GUID%
+powercfg -setactive e73a048d-bf27-4f12-9731-8b2076e8891f
 
 echo Custom power plan applied successfully.
-
-@echo off
 
 echo Disabling Xbox services...
 
@@ -198,6 +199,12 @@ goto end
 
 :end
 
-echo The computer will now restart to apply the new name and other power settings. Press any key to restart...
-pause >nul
-shutdown /r /t 0
+echo The computer needs to be restarted to apply the new name and other power settings.
+
+choice /C YN /M "Do you want to restart now? (Y/N)"
+
+if %errorlevel% equ 1 (
+  shutdown /r /t 0
+) else (
+  echo You can restart the computer later to apply the changes.
+)
